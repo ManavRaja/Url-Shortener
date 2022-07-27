@@ -21,6 +21,14 @@ async def startup_event():
         await redis_server.set(document["path"], document["url"])
 
 
+@app.on_event("shutdown")
+async def shutdown_event():
+    db = await get_db()
+    redis_server = await get_redis_server()
+    async for document in db.Urls.find({}):
+        await redis_server.delete(document["path"])
+
+
 async def add_to_redis_server(db_document):
     redis_server = await get_redis_server()
     await redis_server.set(db_document["path"], db_document["url"])
