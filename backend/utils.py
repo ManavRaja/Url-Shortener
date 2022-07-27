@@ -15,6 +15,7 @@ async def get_db():
     settings = get_settings()
     return motor.motor_asyncio.AsyncIOMotorClient(settings.mongo_client_url)["Url-Shortener"]
 
+
 async def get_redis_server():
     settings = get_settings()
     return aioredis.from_url(settings.redis_server_url, db=0)
