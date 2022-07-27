@@ -9,7 +9,16 @@ from fastapi.responses import RedirectResponse
 
 from backend.utils import get_db, get_redis_server
 
+
 app = FastAPI()
+
+
+@app.on_event("startup")
+async def startup_event():
+    db = await get_db()
+    redis_server = await get_redis_server()
+    async for document in db.Urls.find({}):
+        await redis_server.set(document["path"], document["url"])
 
 
 async def add_to_redis_server(db_document):
