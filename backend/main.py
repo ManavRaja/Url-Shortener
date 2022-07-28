@@ -2,7 +2,6 @@ import urllib.parse
 
 import aiohttp
 from aiohttp import InvalidURL, ClientConnectorError
-from dateutil.relativedelta import relativedelta
 from fastapi import FastAPI, BackgroundTasks, Header, Form, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 
