@@ -34,7 +34,7 @@ async def add_to_redis_server(db_document):
 
 
 @app.post("/add-url")
-async def add_url(csrf_token: str = Header(...), path: str = Form(...), redirect_url: str = Form(...),
+async def add_url(csrf_token: str = Header(...), path: str = Form(...), redirect_url: str = Form(...),  # skipcq: PYL-W0613
                   db=Depends(get_db), redis_server=Depends(get_redis_server)):
 
     safe_path = urllib.parse.quote(path, safe="/")
@@ -45,7 +45,7 @@ async def add_url(csrf_token: str = Header(...), path: str = Form(...), redirect
         raise HTTPException(status_code=400, detail="Path already in use.")
 
     try:
-        async with aiohttp.ClientSession() as session, session.get(redirect_url) as response:
+        async with aiohttp.ClientSession() as session, session.get(redirect_url) as response:  # skipcq: PYL-W0612
             pass
     except InvalidURL:
         raise HTTPException(status_code=400, detail="Not a valid url.")
