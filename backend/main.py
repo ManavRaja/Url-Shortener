@@ -53,8 +53,7 @@ async def add_url(csrf_token: str = Header(...), path: str = Form(...), redirect
     except ClientConnectorError:
         raise HTTPException(status_code=400, detail="Not a valid url.")
 
-    await db.Urls.insert_one({"path": safe_path, "url": redirect_url,
-                              "expiry_date": datetime.datetime.utcnow() + relativedelta(years=1)})
+    await db.Urls.insert_one({"path": safe_path, "url": redirect_url})
     await redis_server.set(safe_path, redirect_url)
 
     return {"message": "Successfully added shortened url."}
