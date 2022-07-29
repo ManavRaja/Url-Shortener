@@ -3,7 +3,8 @@ import urllib.parse
 import aiohttp
 from aiohttp import InvalidURL, ClientConnectorError
 from fastapi import FastAPI, BackgroundTasks, Header, Form, Depends, HTTPException
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from backend.utils import get_db, get_redis_server
 
@@ -30,6 +31,14 @@ async def shutdown_event():
 async def add_to_redis_server(db_document):
     redis_server = await get_redis_server()
     await redis_server.set(db_document["path"], db_document["url"])
+
+
+app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
+
+
+@app.get("/")
+async def home():
+    return FileResponse("./frontend/index.html")
 
 
 @app.post("/add-url")
