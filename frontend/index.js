@@ -7,7 +7,7 @@ let path = document.getElementById("path")
 form.onsubmit = async function (event) {
     event.preventDefault();
 
-    let response = await fetch("http://127.0.0.1:8000/add-url", {
+    let response = await fetch("https://<YOUR_DOMAIN>/add-url", {
         method: "post",
         body: new FormData(form),
         headers: {"csrf-token": ""}
@@ -18,7 +18,7 @@ form.onsubmit = async function (event) {
         afterSubmit.hidden = false
         form.reset()
         redirectUrl.value = json_response.redirect_url
-        path.value = "url.manavrv.dev/" + json_response.path
+        path.value = "<YOUR_DOMAIN>/" + json_response.path
 
     } else if (json_response.detail === "Not a valid url.")  {
         alert("Please input a valid Url.")
