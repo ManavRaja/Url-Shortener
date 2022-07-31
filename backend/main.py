@@ -45,12 +45,10 @@ async def home():
 async def add_url(csrf_token: str = Header(...), path: str = Form(...), redirect_url: str = Form(...),  # skipcq: PYL-W0613
                   db=Depends(get_db), redis_server=Depends(get_redis_server)):
 
-    safe_path = urllib.parse.quote(path, safe="/")
-
-    if path[0] != "/":
-        raise HTTPException(status_code=400, detail="Not a path.")
-    elif await db.Urls.find_one({"path": safe_path}):
-        raise HTTPException(status_code=400, detail="Path already in use.")
+    initial_url = redirect_url
+    if "http://" not in redirect_url:
+        if "https://" not in redirect_url:
+            redirect_url = "http://" + redirect_url
 
     try:
         async with aiohttp.ClientSession() as session, session.get(redirect_url) as response:  # skipcq: PYL-W0612
@@ -60,17 +58,23 @@ async def add_url(csrf_token: str = Header(...), path: str = Form(...), redirect
     except ClientConnectorError:
         raise HTTPException(status_code=400, detail="Not a valid url.")
 
+    safe_path = urllib.parse.quote(path, safe="/")
+
+    if await db.Urls.find_one({"path": safe_path}):
+        raise HTTPException(status_code=400, detail="Path already in use.")
+
     await db.Urls.insert_one({"path": safe_path, "url": redirect_url})
     await redis_server.set(safe_path, redirect_url)
 
-    return {"message": "Successfully added shortened url."}
+    return {"message": "Successfully added shortened url.", "redirect_url": initial_url, "path": safe_path}
 
 
 @app.get("/{path}")
 async def redirect(path,  background_tasks: BackgroundTasks, db=Depends(get_db), redis_server=Depends(get_redis_server)):
-    redirect_url = await redis_server.get("/" + path)
+    safe_path = urllib.parse.quote(path, safe="/")
+    redirect_url = await redis_server.get(safe_path)
     if redirect_url is None:
-        redirect_url_document = await db.Urls.find_one({"path": "/" + path})
+        redirect_url_document = await db.Urls.find_one({"path": path})
         if redirect_url_document is None:
             raise HTTPException(status_code=404, detail="Not a valid path.")
         else:
